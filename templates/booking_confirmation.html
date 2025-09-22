@@ -1,1 +1,29 @@
 
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h3>Booking Confirmed!</h3>
+            </div>
+            <div class="card-body">
+                <h5>Booking Details:</h5>
+                <p><strong>Booking ID:</strong> {{ booking.booking_id }}</p>
+                <p><strong>Gym:</strong> {{ booking.gym_name }}</p>
+                <p><strong>Location:</strong> {{ booking.location }}</p>
+                <p><strong>Date:</strong> {{ booking.date }}</p>
+                <p><strong>Time:</strong> {{ booking.time_slot }}</p>
+                <p><strong>Booked by:</strong> {{ booking.user_name }}</p>
+                
+                <div class="alert alert-info">
+                    Please save this booking ID for your records. Present it when you visit the gym.
+                </div>
+                
+                <a href="{{ url_for('index') }}" class="btn btn-primary">Book Another Session</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
