@@ -1,1 +1,110 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Dashboard - {{ session.gym_name }}</h2>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4>Add Time Slot</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_time_slot') }}">
+                    <div class="mb-3">
+                        <label for="date" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="date" name="date" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="start_time" class="form-label">Start Time</label>
+                                <input type="time" class="form-control" id="start_time" name="start_time" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="end_time" class="form-label">End Time</label>
+                                <input type="time" class="form-control" id="end_time" name="end_time" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="capacity" class="form-label">Capacity</label>
+                        <input type="number" class="form-control" id="capacity" name="capacity" value="1" min="1" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Slot</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4>Recent Bookings</h4>
+            </div>
+            <div class="card-body">
+                {% if bookings %}
+                    {% for booking in bookings %}
+                    <div class="border p-2 mb-2">
+                        <strong>{{ booking.user_name }}</strong> - {{ booking.date }} {{ booking.time_slot }}
+                        <br><small>Phone: {{ booking.user_phone }}</small>
+                        <br><small>Status: {{ booking.status }}</small>
+                        {% if booking.status == 'confirmed' %}
+                            <a href="{{ url_for('cancel_booking', booking_id=booking.booking_id) }}" 
+                               class="btn btn-sm btn-danger float-end">Cancel</a>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No bookings yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4>Time Slots</h4>
+            </div>
+            <div class="card-body">
+                {% if time_slots %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Time Slot</th>
+                                    <th>Capacity</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for slot in time_slots %}
+                                <tr>
+                                    <td>{{ slot.date }}</td>
+                                    <td>{{ slot.time_slot }}</td>
+                                    <td>{{ slot.capacity }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if slot.is_available else 'danger' }}">
+                                            {{ 'Available' if slot.is_available else 'Booked' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p>No time slots created yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
