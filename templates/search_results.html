@@ -1,1 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Available Gyms</h2>
+
+{% if gyms %}
+    {% for gym in gyms %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">{{ gym.gym_name }}</h5>
+            <p class="card-text">
+                <strong>Location:</strong> {{ gym.location }}<br>
+                <strong>Description:</strong> {{ gym.description }}<br>
+                <strong>Owner:</strong> {{ gym.owner_name }}
+            </p>
+            
+            {% if gym.available_slots %}
+                <h6>Available Time Slots for {{ selected_date }}:</h6>
+                {% for slot in gym.available_slots %}
+                <div class="border p-2 mb-2">
+                    <strong>{{ slot.time_slot }}</strong>
+                    <button class="btn btn-sm btn-primary float-end" 
+                            onclick="bookSession('{{ gym.gym_id }}', '{{ slot.slot_id }}', '{{ selected_date }}', '{{ slot.time_slot }}')">
+                        Book Session
+                    </button>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted">No available slots for selected date.</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <p>No gyms found in the specified location.</p>
+{% endif %}
+
+<!-- Booking Modal -->
+<div class="modal fade" id="bookingModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('book_session') }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">Book Session</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="modal_gym_id" name="gym_id">
+                    <input type="hidden" id="modal_slot_id" name="slot_id">
+                    <input type="hidden" id="modal_date" name="date">
+                    <input type="hidden" id="modal_time_slot" name="time_slot">
+                    
+                    <div class="mb-3">
+                        <label for="user_name" class="form-label">Your Name</label>
+                        <input type="text" class="form-control" id="user_name" name="user_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="user_phone" class="form-label">Phone Number</label>
+                        <input type="tel" class="form-control" id="user_phone" name="user_phone" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Confirm Booking</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function bookSession(gymId, slotId, date, timeSlot) {
+    document.getElementById('modal_gym_id').value = gymId;
+    document.getElementById('modal_slot_id').value = slotId;
+    document.getElementById('modal_date').value = date;
+    document.getElementById('modal_time_slot').value = timeSlot;
+    
+    var modal = new bootstrap.Modal(document.getElementById('bookingModal'));
+    modal.show();
+}
+</script>
+{% endblock %}
+
 
