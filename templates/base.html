@@ -1,97 +1,42 @@
-#!/bin/bash
-
-# ---------------------------
-# Variables to edit
-# ---------------------------
-USERNAME="root"
-APP_DIR="/home/$USERNAME/flaskapp"
-APP_FILE="app.py"
-DOMAIN="ip-###-##-17-169.ec2.internal"   # Replace with server IP if no domain
-FLASK_SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_hex(32))")
-
-# ---------------------------
-# Step 1: Update & install packages
-# ---------------------------
-sudo apt update && sudo apt upgrade -y
-sudo apt install -y python3-pip python3-venv nginx certbot python3-certbot-nginx
-
-# ---------------------------
-# Step 2: Setup virtual environment
-# ---------------------------
-cd $APP_DIR
-python3 -m venv venv
-source venv/bin/activate
-pip install --upgrade pip
-pip install flask gunicorn
-
-# ---------------------------
-# Step 3: Create .env file
-# ---------------------------
-cat > $APP_DIR/.env <<EOL
-FLASK_APP=$APP_FILE
-FLASK_ENV=production
-FLASK_SECRET_KEY=$FLASK_SECRET_KEY
-EOL
-
-# ---------------------------
-# Step 4: Create systemd service
-# ---------------------------
-sudo tee /etc/systemd/system/flaskapp.service > /dev/null <<EOL
-[Unit]
-Description=Gunicorn instance to serve Flask App
-After=network.target
-
-[Service]
-User=$USERNAME
-Group=www-data
-WorkingDirectory=$APP_DIR
-Environment="FLASK_APP=$APP_FILE"
-Environment="FLASK_ENV=production"
-Environment="FLASK_SECRET_KEY=$FLASK_SECRET_KEY"
-ExecStart=$APP_DIR/venv/bin/gunicorn --workers 4 --bind 127.0.0.1:5000 app:app
-
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-EOL
-
-# ---------------------------
-# Step 5: Start & enable systemd service
-# ---------------------------
-sudo systemctl daemon-reload
-sudo systemctl start flaskapp
-sudo systemctl enable flaskapp
-
-# ---------------------------
-# Step 6: Configure Nginx
-# ---------------------------
-sudo tee /etc/nginx/sites-available/flaskapp > /dev/null <<EOL
-server {
-    listen 80;
-    server_name $DOMAIN;
-
-    location / {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-    }
-}
-EOL
-
-sudo ln -sf /etc/nginx/sites-available/flaskapp /etc/nginx/sites-enabled
-sudo nginx -t
-sudo systemctl restart nginx
-
-# ---------------------------
-# Step 7: (Optional) Enable HTTPS with Let's Encrypt
-# ---------------------------
-sudo certbot --nginx -d $DOMAIN --non-interactive --agree-tos -m your_email@example.com
-
-echo "------------------------------------------"
-echo "Flask app setup completed!"
-echo "FLASK_SECRET_KEY: $FLASK_SECRET_KEY"
-echo "Access your app at http://$DOMAIN (or https://$DOMAIN if HTTPS is enabled)"
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gym Booking System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">Gym Booking System</a>
+            <div class="navbar-nav ms-auto">
+                {% if session.gym_owner_id %}
+                    <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+                    <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                {% else %}
+                    <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                    <a class="nav-link" href="{{ url_for('signup') }}">Sign Up</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
